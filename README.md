@@ -7,6 +7,7 @@ Dashboard from  Device, you must be set from the database NoSQL.
 `sudo yum install -y nodejs git amazon-efs-utils`
 
 ## Mounting EFS
+
 ### Using EFS Mount Helpher:
 `sudo mount -t efs -o tls yourEFS:/ efs`
 
