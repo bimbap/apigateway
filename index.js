@@ -6,6 +6,7 @@ const app = express();
 dotenv.config();
 
 const API_URL = process.env.API_URL;
+const EFS_MOUNT_PATH = process.env.EFS_MOUNT_PATH;
 
 app.use(express.static('public'));
 app.use(express.json());
