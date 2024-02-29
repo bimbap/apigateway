@@ -5,6 +5,15 @@ Dashboard from  Device, you must be set from the database NoSQL.
 ## Install nodejs
 `curl -fsSL https://rpm.nodesource.com/setup_21.x | sudo bash -`<br/>
 `sudo yum install -y nodejs git amazon-efs-utils`
+
+## Mounting EFS
+### Using EFS Mount Helpher:
+`sudo mount -t efs -o tls yourEFS:/ efs`
+
+### Using NFS Client:
+`sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport yourefs:/ efs` 
+
+
 ## Install Dependencies
 `npm install`
 
