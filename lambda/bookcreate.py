@@ -2,16 +2,20 @@ import json
 import boto3
 import uuid
 
-# Initialising the DynamoDB client
+# Initializing the DynamoDB client
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('books')  # The name of your DynamoDB table
 
 def lambda_handler(event, context):
     try:
-        body = json.loads(event['body'])
+        # Print the event to see the structure
+        print("Received event:", json.dumps(event))
+        
+        # Accessing the body of the event directly
+        body = event  # No longer using json.loads(event['body'])
         title = body['title']
         
-        # Creating an Item with a unique id and with the passed title
+        # Creating an Item with a unique id and the passed title
         item = {
             'id': str(uuid.uuid4()),
             'title': title
@@ -21,12 +25,13 @@ def lambda_handler(event, context):
         table.put_item(Item=item)
         
         response = {
-            'statusCode': 200
+            'statusCode': 201,  # Use 201 Created for successful creation
+            'body': json.dumps({'message': 'Item created successfully', 'id': item['id']})
         }
-        return response  # Returning a 200 if the item has been inserted
+        return response  # Returning a 201 if the item has been inserted
     except Exception as e:
         error_response = {
             'statusCode': 500,
-            'body': json.dumps(str(e))
+            'body': json.dumps({'error': str(e)})
         }
         return error_response
