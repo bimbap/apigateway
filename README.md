@@ -6,7 +6,7 @@ Dashboard from  Device, you must be set from the database NoSQL.
 ## Method POST
 `tambahkan code berikut pada mappings template di integration request`<br/>
 `$input.json('$')`
-## Method Update berdasarkan {id}
+## Method PUT berdasarkan {id}
 `Update berdasarkan id (/books/{id}/GET`<br/>
 `tambahkan code berikut pada mappings template di integration request`<br/>
 `{
