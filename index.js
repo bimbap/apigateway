@@ -34,8 +34,7 @@ app.get('/', (req, res) => {
 app.get('/get_books', async (req, res) => {
     try {
         const response = await axios.get(API_URL);
-        const books = response.data;
-        // Log saat mengakses /get_books
+        const books = JSON.parse(response.data.body);
         const logMessage = `${new Date().toISOString()} - GET /get_books - ${req.ip}\n`;
         fs.appendFile(EFS_LOG_PATH, logMessage, (err) => {
             if (err) {
@@ -44,9 +43,11 @@ app.get('/get_books', async (req, res) => {
         });
         res.json(books);
     } catch (error) {
+        console.error('Error fetching books:', error); // Log kesalahan
         res.status(500).json({ error: 'Internal Server Error' });
     }
 });
+
 
 app.post('/add_book', (req, res) => {
     const { title } = req.body;
