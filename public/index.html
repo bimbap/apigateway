@@ -89,6 +89,7 @@
             });
         });
 
+        $(document).ready(function() {
         $('#books-table').DataTable({
             "ajax": {
                 "url": "/get_books",
@@ -97,8 +98,13 @@
             "columns": [
                 { "data": "id" },
                 { "data": "title" }
-            ]
+            ],
+            "error": function(xhr, error, thrown) {
+                console.error('Error loading data: ', error);
+                $('#message').html('<div class="alert alert-danger">Failed to load data.</div>');
+            }
         });
+    });
     });
 </script>
 
