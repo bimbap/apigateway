@@ -25,7 +25,14 @@ Dashboard from  Device, you must be set from the database NoSQL.
   }
 }
 `
-
+## Method DELETE berdasarkan {id}
+`tambahkan code berikut pada mappings template di integration request`<br/>
+`{
+  "pathParameters": {
+    "id": "$input.params('id')"
+  }
+}
+`
 # Application
 ## Install nodejs
 `curl -fsSL https://rpm.nodesource.com/setup_21.x | sudo bash -`<br/>
