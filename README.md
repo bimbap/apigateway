@@ -53,7 +53,7 @@ Dashboard from  Device, you must be set from the database NoSQL.
 # Envinronment Variable
 Setting the environment variable on your path application, use the name .env, and set the variable name on the instruction below:<br/>
 `API_URL=set your API Gateway URL`<br/>
-`EFS_MOUNT_PATH=set your path EFS`
+`EFS_LOG_PATH=set your path EFS`
 
 # Command run application
 `npm run start-prod`
