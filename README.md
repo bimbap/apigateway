@@ -1,6 +1,9 @@
 # Dashboard
 Dashboard from  Device, you must be set from the database NoSQL.
 
+# Architecture
+![Architecture](Latiahn-APlikasi.drawio.png)
+
 # Lambda
 
 ## Method POST
