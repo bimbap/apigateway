@@ -58,3 +58,7 @@ Setting the environment variable on your path application, use the name .env, an
 
 # Command run application
 `npm run start-prod`
+
+
+# run docker
+`docker run -p 5000:5000 --env-file .env --name namacontainernya urlecr`
