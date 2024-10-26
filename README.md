@@ -4,8 +4,6 @@ Dashboard from  Device, you must be set from the database NoSQL.
 # Architecture
 ![Architecture](Latiahn-APlikasi.drawio.png)
 
-# Lambda
-
 ## Method POST
 `tambahkan code berikut pada mappings template di integration request`<br/>
 `$input.json('$')`
