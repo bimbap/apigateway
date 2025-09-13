@@ -64,35 +64,40 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <script>
+    const API_URL = "https://glua1kyp6j.execute-api.us-east-1.amazonaws.com/production/books";
+
     $(document).ready(function() {
+        // Buka modal Add Book
         $('#add-book-link').click(function() {
             $('#addBookModal').modal('show');
         });
 
+        // Submit Add Book
         $('#submit-add-book').click(function() {
             var title = $('#title').val();
 
             $.ajax({
-                url: '/add_book',
+                url: API_URL,
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ 'title': title }),
+                data: JSON.stringify({ "title": title }),
                 success: function(response) {
                     $('#addBookModal').modal('hide');
-                    $('#message').html('<div class="alert alert-success">' + response.message + '</div>');
+                    $('#message').html('<div class="alert alert-success">Book added successfully!</div>');
                     $('#title').val('');
+                    $('#books-table').DataTable().ajax.reload(); // reload table setelah tambah
                 },
                 error: function(xhr, status, error) {
-                    var errorMessage = JSON.parse(xhr.responseText);
-                    $('#message').html('<div class="alert alert-danger">' + errorMessage.error + '</div>');
+                    console.error(xhr.responseText);
+                    $('#message').html('<div class="alert alert-danger">Failed to add book.</div>');
                 }
             });
         });
 
-        $(document).ready(function() {
+        // DataTables ambil data dari API Gateway
         $('#books-table').DataTable({
             "ajax": {
-                "url": "/get_books",
+                "url": API_URL,
                 "dataSrc": ""
             },
             "columns": [
@@ -100,13 +105,13 @@
                 { "data": "title" }
             ],
             "error": function(xhr, error, thrown) {
-                console.error('Error loading data: ', error);
+                console.error('Error loading data: ', error, xhr.responseText);
                 $('#message').html('<div class="alert alert-danger">Failed to load data.</div>');
             }
         });
     });
-    });
 </script>
+
 
 </body>
 </html>
