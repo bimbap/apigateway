@@ -1,14 +1,12 @@
-# Dashboard
-Dashboard from Device, you must set up the NoSQL database and serverless API.
+# Books Portal Application
 
----
+Full-stack books management portal backed by Amazon API Gateway, AWS Lambda, DynamoDB, EC2, and EFS.
 
-# Architecture
+## Architecture
+
 ![Architecture](Latiahn-APlikasi.drawio.png)
 
----
-
-# AWS Lambda Functions (`Python 3.12`)
+## AWS Lambda Functions (`Python 3.12`)
 
 | Function | Source File | Route & Method |
 |---|---|---|
@@ -18,79 +16,61 @@ Dashboard from Device, you must set up the NoSQL database and serverless API.
 | Book Update | [`lambda/book-update.py`](lambda/book-update.py) | `PUT /books/{id}` |
 | Book Delete | [`lambda/book-delete.py`](lambda/book-delete.py) | `DELETE /books/{id}` |
 
----
+<details>
+<summary>API Gateway Mapping Templates (Non-Proxy Reference)</summary>
 
-# API Gateway Mapping Templates (Non-Proxy Reference)
-
-If using non-proxy Integration Request mapping templates:
-
-## Method POST
-```vtl
-$input.json('$')
-```
-
-## Method PUT (`/books/{id}`)
-```json
-{
-  "body": $input.json('$'),
-  "pathParameters": {
-    "id": "$input.params('id')"
+- **`POST /books`**
+  ```vtl
+  $input.json('$')
+  ```
+- **`PUT /books/{id}` & `GET /books/{id}`**
+  ```json
+  {
+    "body": $input.json('$'),
+    "pathParameters": {
+      "id": "$input.params('id')"
+    }
   }
-}
-```
-
-## Method GET (`/books/{id}`)
-```json
-{
-  "body": $input.json('$'),
-  "pathParameters": {
-    "id": "$input.params('id')"
+  ```
+- **`DELETE /books/{id}`**
+  ```json
+  {
+    "pathParameters": {
+      "id": "$input.params('id')"
+    }
   }
-}
-```
+  ```
 
-## Method DELETE (`/books/{id}`)
-```json
-{
-  "pathParameters": {
-    "id": "$input.params('id')"
-  }
-}
-```
+</details>
 
----
+## EC2 Application Setup (Amazon Linux 2023)
 
-# Application
+1. **Install Node.js 22 LTS & EFS Utilities**
+   ```bash
+   curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash -
+   sudo dnf install -y nodejs git amazon-efs-utils
+   ```
 
-## Install Node.js 22 LTS & Dependencies
-```bash
-curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash -
-sudo dnf install -y nodejs git amazon-efs-utils
-```
+2. **Mount Amazon EFS**
+   ```bash
+   # Using EFS Mount Helper
+   sudo mount -t efs -o tls <EFS_ID>:/ efs
 
-## Mounting EFS
+   # Or using NFSv4 Client
+   sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport <EFS_DNS>:/ efs
+   ```
 
-### Using EFS Mount Helper:
-```bash
-sudo mount -t efs -o tls yourEFS:/ efs
-```
+3. **Install Dependencies**
+   ```bash
+   npm install
+   ```
 
-### Using NFS Client:
-```bash
-sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport yourEFS:/ efs
-```
+4. **Configure Environment Variables**
+   Set the following variables in your application path:
+   - `API_URL` — your API Gateway invoke URL
+   - `EFS_LOG_PATH` — your EFS log path
 
-## Install Packages
-```bash
-npm install
-```
-
-## Environment Variable
-Setting the environment variable on your application path, and set the variable names on the instruction below:
-- `API_URL=set your API Gateway URL`
-- `EFS_LOG_PATH=set your path EFS`
-
-## Command Run Application
-```bash
-npm run start-prod
-```
+5. **Run Application**
+   ```bash
+   npm run start-prod
+   ```
