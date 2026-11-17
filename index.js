@@ -39,17 +39,6 @@ function writeAccessLog(req) {
     });
 }
 
-function unwrapApiResponse(data) {
-    if (data && typeof data === 'object' && typeof data.body === 'string') {
-        try {
-            return JSON.parse(data.body);
-        } catch (_) {
-            return data;
-        }
-    }
-    return data;
-}
-
 function requireApiUrl(res) {
     if (!API_URL) {
         res.status(500).json({ error: 'API_URL is not configured in .env' });
@@ -78,7 +67,7 @@ app.get('/api/books', async (req, res) => {
     if (!requireApiUrl(res)) return;
     try {
         const response = await axios.get(API_URL);
-        res.status(200).json(unwrapApiResponse(response.data));
+        res.status(200).json(response.data);
     } catch (error) {
         console.error('Error fetching books:', error.message);
         res.status(error.response?.status || 502).json({ error: 'Failed to fetch books from API Gateway' });
@@ -89,7 +78,7 @@ app.get('/api/books/:id', async (req, res) => {
     if (!requireApiUrl(res)) return;
     try {
         const response = await axios.get(`${API_URL}/${encodeURIComponent(req.params.id)}`);
-        res.status(200).json(unwrapApiResponse(response.data));
+        res.status(200).json(response.data);
     } catch (error) {
         console.error('Error fetching book:', error.message);
         res.status(error.response?.status || 502).json({ error: 'Failed to fetch book from API Gateway' });
@@ -100,7 +89,7 @@ app.post('/api/books', async (req, res) => {
     if (!requireApiUrl(res)) return;
     try {
         const response = await axios.post(API_URL, { title: req.body.title });
-        res.status(response.status || 201).json(unwrapApiResponse(response.data));
+        res.status(response.status || 201).json(response.data);
     } catch (error) {
         console.error('Error creating book:', error.message);
         res.status(error.response?.status || 502).json({ error: 'Failed to create book via API Gateway' });
@@ -113,7 +102,7 @@ app.put('/api/books/:id', async (req, res) => {
         const response = await axios.put(`${API_URL}/${encodeURIComponent(req.params.id)}`, {
             title: req.body.title
         });
-        res.status(response.status || 200).json(unwrapApiResponse(response.data));
+        res.status(response.status || 200).json(response.data);
     } catch (error) {
         console.error('Error updating book:', error.message);
         res.status(error.response?.status || 502).json({ error: 'Failed to update book via API Gateway' });
@@ -124,7 +113,7 @@ app.delete('/api/books/:id', async (req, res) => {
     if (!requireApiUrl(res)) return;
     try {
         const response = await axios.delete(`${API_URL}/${encodeURIComponent(req.params.id)}`);
-        res.status(response.status || 200).json(unwrapApiResponse(response.data));
+        res.status(response.status || 200).json(response.data);
     } catch (error) {
         console.error('Error deleting book:', error.message);
         res.status(error.response?.status || 502).json({ error: 'Failed to delete book via API Gateway' });

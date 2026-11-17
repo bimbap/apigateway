@@ -21,8 +21,6 @@ Deploy all five functions using the **Python 3.12** runtime with **Lambda Proxy 
 | Book Update | [`lambda/book-update.py`](lambda/book-update.py) | `PUT /books/{id}` |
 | Book Delete | [`lambda/book-delete.py`](lambda/book-delete.py) | `DELETE /books/{id}` |
 
-*(Optional: Set `TABLE_NAME` environment variable in Lambda; defaults to `books`).*
-
 ---
 
 ## EC2 Application Setup (Amazon Linux 2023)
@@ -62,5 +60,3 @@ EFS_LOG_PATH=/home/ec2-user/efs/app.log
 ```bash
 npm run start-prod
 ```
-
-Health check endpoint: `GET /health` (returns HTTP 200).

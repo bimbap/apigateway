@@ -5,7 +5,7 @@ import os
 import uuid
 import boto3
 
-TABLE_NAME = os.environ.get('TABLE_NAME', 'books')
+TABLE_NAME = os.environ['TABLE_NAME']
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(TABLE_NAME)
 
@@ -26,14 +26,14 @@ def _build_response(status_code, payload):
 
 
 def _parse_body(event):
-    raw_body = event.get('body') if isinstance(event, dict) and 'body' in event else event
+    raw_body = event['body']
     if isinstance(raw_body, str):
         return json.loads(raw_body) if raw_body.strip() else {}
     return raw_body if isinstance(raw_body, dict) else {}
 
 
 def lambda_handler(event, context):
-    """Handle POST /books requests (compatible with Proxy and Non-Proxy integration)."""
+    """Handle POST /books requests via Lambda Proxy Integration."""
     try:
         print('Received event:', json.dumps(event))
         body = _parse_body(event)
