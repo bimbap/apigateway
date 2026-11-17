@@ -1,5 +1,5 @@
 cd /home/ec2-user
-git clone -b master https://github.com/bimbap/apigateway.git app
+git clone --single-branch --depth 1 -b master https://github.com/bimbap/apigateway.git app
 cd /home/ec2-user/app
 npm install --omit=dev
 
