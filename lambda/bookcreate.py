@@ -1,37 +1,60 @@
-import json
-import boto3
-import uuid
+"""AWS Lambda handler for creating a new book record in DynamoDB."""
 
-# Initializing the DynamoDB client
+import json
+import os
+import uuid
+import boto3
+
+TABLE_NAME = os.environ.get('TABLE_NAME', 'books')
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('books')  # The name of your DynamoDB table
+table = dynamodb.Table(TABLE_NAME)
+
+CORS_HEADERS = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+}
+
+
+def _build_response(status_code, payload):
+    return {
+        'statusCode': status_code,
+        'headers': CORS_HEADERS,
+        'body': json.dumps(payload)
+    }
+
+
+def _parse_body(event):
+    raw_body = event.get('body') if isinstance(event, dict) and 'body' in event else event
+    if isinstance(raw_body, str):
+        return json.loads(raw_body) if raw_body.strip() else {}
+    return raw_body if isinstance(raw_body, dict) else {}
+
 
 def lambda_handler(event, context):
+    """Handle POST /books requests (compatible with Proxy and Non-Proxy integration)."""
     try:
-        # Print the event to see the structure
-        print("Received event:", json.dumps(event))
-        
-        # Accessing the body of the event directly
-        body = event  # No longer using json.loads(event['body'])
-        title = body['title']
-        
-        # Creating an Item with a unique id and the passed title
+        print('Received event:', json.dumps(event))
+        body = _parse_body(event)
+        title = str(body.get('title', '')).strip()
+
+        if not title:
+            return _build_response(400, {'error': "Field 'title' is required"})
+
         item = {
             'id': str(uuid.uuid4()),
             'title': title
         }
-        
-        # Inserting an item into the table
         table.put_item(Item=item)
-        
-        response = {
-            'statusCode': 201,  # Use 201 Created for successful creation
-            'body': json.dumps({'message': 'Item created successfully', 'id': item['id']})
-        }
-        return response  # Returning a 201 if the item has been inserted
-    except Exception as e:
-        error_response = {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)})
-        }
-        return error_response
+
+        return _build_response(201, {
+            'message': 'Item created successfully',
+            'id': item['id'],
+            'item': item
+        })
+    except json.JSONDecodeError:
+        return _build_response(400, {'error': 'Invalid JSON payload'})
+    except Exception as exc:
+        print('Error creating book:', str(exc))
+        return _build_response(500, {'error': str(exc)})

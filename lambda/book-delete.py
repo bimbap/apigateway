@@ -1,62 +1,48 @@
+"""AWS Lambda handler for deleting a book record by ID."""
+
 import json
+import os
 import boto3
 
-# Initialize DynamoDB resource
+TABLE_NAME = os.environ.get('TABLE_NAME', 'books')
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('books')
+table = dynamodb.Table(TABLE_NAME)
+
+CORS_HEADERS = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+}
+
+
+def _build_response(status_code, payload):
+    return {
+        'statusCode': status_code,
+        'headers': CORS_HEADERS,
+        'body': json.dumps(payload)
+    }
+
 
 def lambda_handler(event, context):
+    """Handle DELETE /books/{id} requests."""
     try:
-        # Log the incoming event for debugging
-        print("Received event: ", json.dumps(event))
+        print('Received event:', json.dumps(event))
+        path_params = event.get('pathParameters') or {}
+        book_id = path_params.get('id')
 
-        # Extract path parameters (id)
-        if 'pathParameters' in event and 'id' in event['pathParameters']:
-            id = event['pathParameters']['id']
-        else:
-            return {
-                'statusCode': 400,
-                'body': json.dumps({'error': 'Missing id in path parameters'}),
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'  # CORS header
-                }
-            }
-        
-        # Delete the item from DynamoDB
+        if not book_id:
+            return _build_response(400, {'error': 'Missing id in path parameters'})
+
         response = table.delete_item(
-            Key={'id': id}
+            Key={'id': book_id},
+            ReturnValues='ALL_OLD'
         )
-        
-        # Check the response for errors
-        if 'ConsumedCapacity' in response:
-            # Item was deleted successfully
-            return {
-                'statusCode': 200,
-                'body': json.dumps({'message': f'Book with id {id} deleted successfully'}),
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'  # CORS header
-                }
-            }
-        else:
-            # Item was not found or there was an issue deleting
-            return {
-                'statusCode': 404,
-                'body': json.dumps({'error': f'Book with id {id} not found'}),
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'  # CORS header
-                }
-            }
-    except Exception as e:
-        # Log the exception for debugging
-        print(f"Error: {str(e)}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)}),
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'  # CORS header
-            }
-        }
+
+        if 'Attributes' in response:
+            return _build_response(200, {'message': f'Book with id {book_id} deleted successfully'})
+
+        return _build_response(404, {'error': f'Book with id {book_id} not found'})
+    except Exception as exc:
+        print('Error deleting book:', str(exc))
+        return _build_response(500, {'error': str(exc)})

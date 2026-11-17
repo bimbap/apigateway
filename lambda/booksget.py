@@ -1,53 +1,46 @@
+"""AWS Lambda handler for retrieving a single book record by ID."""
+
 import json
+import os
 import boto3
 
+TABLE_NAME = os.environ.get('TABLE_NAME', 'books')
 dynamodb = boto3.resource('dynamodb')
-table = dynamodb.Table('books')
+table = dynamodb.Table(TABLE_NAME)
+
+CORS_HEADERS = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token,X-Requested-With',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS'
+}
+
+
+def _build_response(status_code, payload):
+    return {
+        'statusCode': status_code,
+        'headers': CORS_HEADERS,
+        'body': json.dumps(payload)
+    }
+
 
 def lambda_handler(event, context):
-    # Log the entire event object to check what is received
-    print("Event: ", json.dumps(event))
-    
+    """Handle GET /books/{id} requests."""
     try:
-        # Ensure pathParameters exist before accessing 'id'
-        if 'pathParameters' in event and 'id' in event['pathParameters']:
-            id = event['pathParameters']['id']
-        else:
-            raise KeyError('pathParameters or id missing in the event object')
-        
-        # Query the DynamoDB table by 'id'
-        response = table.get_item(Key={'id': id})
-        
-        # Check if the item exists
-        if 'Item' in response:
-            item = response['Item']
-            return {
-                'statusCode': 200,
-                'body': json.dumps(item),
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'  # CORS headers if needed
-                }
-            }
-        else:
-            # Return a 404 if the item is not found
-            return {
-                'statusCode': 404,
-                'body': json.dumps({'message': 'Item not found'}),
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*'
-                }
-            }
-    
-    except Exception as e:
-        # Log the exception for debugging
-        print(e)
-        return {
-            'statusCode': 500,
-            'body': json.dumps({'error': str(e)}),
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*'
-            }
-        }
+        print('Received event:', json.dumps(event))
+        path_params = event.get('pathParameters') or {}
+        book_id = path_params.get('id')
+
+        if not book_id:
+            return _build_response(400, {'error': 'Missing id in path parameters'})
+
+        response = table.get_item(Key={'id': book_id})
+        item = response.get('Item')
+
+        if not item:
+            return _build_response(404, {'message': 'Item not found'})
+
+        return _build_response(200, item)
+    except Exception as exc:
+        print('Error getting book:', str(exc))
+        return _build_response(500, {'error': str(exc)})

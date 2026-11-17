@@ -1,61 +1,66 @@
-# Dashboard
-Dashboard from  Device, you must be set from the database NoSQL.
+# Books Portal Application (EC2 + API Gateway + Lambda + DynamoDB + EFS)
 
-# Architecture
+Web application and serverless CRUD backend for the Cloud Computing post-test scenario.
+
+---
+
+## Architecture
 ![Architecture](Latiahn-APlikasi.drawio.png)
 
-## Method POST
-`tambahkan code berikut pada mappings template di integration request`<br/>
-`$input.json('$')`
-## Method PUT berdasarkan {id}
-`Update berdasarkan id (/books/{id}/GET`<br/>
-`tambahkan code berikut pada mappings template di integration request`<br/>
-`{
-  "body": $input.json('$'),
-  "pathParameters": {
-    "id": "$input.params('id')"
-  }
-}`
-## Method GET berdasarkan {id}
-`GET berdasarkan id (/books/{id}/GET`<br/>
-`tambahkan code berikut pada mappings template di integration request`<br/>
-`{
-  "body": $input.json('$'),
-  "pathParameters": {
-    "id": "$input.params('id')"
-  }
-}
-`
-## Method DELETE berdasarkan {id}
-`tambahkan code berikut pada mappings template di integration request`<br/>
-`{
-  "pathParameters": {
-    "id": "$input.params('id')"
-  }
-}
-`
-# Application
-## Install nodejs
-`curl -fsSL https://rpm.nodesource.com/setup_21.x | sudo bash -`<br/>
-`sudo yum install -y nodejs git amazon-efs-utils`
+---
 
-## Mounting EFS
+## AWS Lambda Functions (`Python 3.12`)
 
-### Using EFS Mount Helpher:
-`sudo mount -t efs -o tls yourEFS:/ efs`
+Deploy all five functions using the **Python 3.12** runtime with **Lambda Proxy Integration** enabled in API Gateway:
 
-### Using NFS Client:
-`sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport yourefs:/ efs` 
+| Function | Source File | Route & Method |
+|---|---|---|
+| Book Get (List) | [`lambda/bookget.py`](lambda/bookget.py) | `GET /books` |
+| Book Create | [`lambda/bookcreate.py`](lambda/bookcreate.py) | `POST /books` |
+| Books Get (Detail) | [`lambda/booksget.py`](lambda/booksget.py) | `GET /books/{id}` |
+| Book Update | [`lambda/book-update.py`](lambda/book-update.py) | `PUT /books/{id}` |
+| Book Delete | [`lambda/book-delete.py`](lambda/book-delete.py) | `DELETE /books/{id}` |
 
+*(Optional: Set `TABLE_NAME` environment variable in Lambda; defaults to `books`).*
 
-## Install Dependencies
-`npm install`
+---
 
-# Envinronment Variable
-Setting the environment variable on your path application, use the name .env, and set the variable name on the instruction below:<br/>
-`API_URL=set your API Gateway URL`<br/>
-`EFS_LOG_PATH=set your path EFS`
+## EC2 Application Setup (Amazon Linux 2023)
 
-# Command run application
-`npm run start-prod`
+### 1. Install Node.js 22 LTS & EFS Utils
+```bash
+curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash -
+sudo dnf install -y nodejs git amazon-efs-utils
+```
 
+### 2. Mount EFS
+Using EFS Mount Helper:
+```bash
+mkdir -p /home/ec2-user/efs
+sudo mount -t efs -o tls <your-efs-id>:/ /home/ec2-user/efs
+```
+
+Using NFSv4 Client:
+```bash
+sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport <your-efs-dns>:/ /home/ec2-user/efs
+```
+
+### 3. Install Dependencies
+```bash
+npm install
+```
+
+### 4. Environment Variables (`.env`)
+Create a `.env` file in the project root:
+```env
+PORT=5000
+API_URL=https://<api-id>.execute-api.us-east-1.amazonaws.com/production/books
+EFS_LOG_PATH=/home/ec2-user/efs/app.log
+```
+
+### 5. Run Application
+```bash
+npm run start-prod
+```
+
+Health check endpoint: `GET /health` (returns HTTP 200).
