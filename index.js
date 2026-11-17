@@ -63,6 +63,10 @@ app.get('/health', (req, res) => {
     });
 });
 
+app.get('/config', (req, res) => {
+    res.status(200).json({ apiUrl: API_URL });
+});
+
 app.get('/api/books', async (req, res) => {
     if (!requireApiUrl(res)) return;
     try {

@@ -89,108 +89,116 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
 <script>
-    const API_URL = "/api/books";
-
     function showAlert(type, text) {
         $('#message').html('<div class="alert alert-' + type + ' alert-dismissible fade show">' + text +
             '<button type="button" class="close" data-dismiss="alert">&times;</button></div>');
     }
 
     $(document).ready(function() {
-        const table = $('#books-table').DataTable({
-            "ajax": {
-                "url": API_URL,
-                "dataSrc": "",
-                "error": function(xhr) {
-                    console.error('Error loading data:', xhr.responseText);
-                    showAlert('danger', 'Failed to load data from backend API.');
-                }
-            },
-            "columns": [
-                { "data": "id" },
-                { "data": "title" },
-                {
-                    "data": null,
-                    "orderable": false,
-                    "render": function(data, type, row) {
-                        const safeTitle = $('<div>').text(row.title).html();
-                        return '<button class="btn btn-warning btn-sm mr-1 btn-edit" data-id="' + row.id + '" data-title="' + safeTitle + '">Edit</button>' +
-                               '<button class="btn btn-danger btn-sm btn-delete" data-id="' + row.id + '">Delete</button>';
+        $.getJSON('/config', function(config) {
+            const API_URL = (config && config.apiUrl || '').replace(/\/+$/, '');
+            if (!API_URL) {
+                showAlert('danger', 'API_URL is not configured in application environment.');
+                return;
+            }
+
+            const table = $('#books-table').DataTable({
+                "ajax": {
+                    "url": API_URL,
+                    "dataSrc": "",
+                    "error": function(xhr) {
+                        console.error('Error loading data:', xhr.responseText);
+                        showAlert('danger', 'Failed to load data from API Gateway (check endpoint or CORS).');
                     }
-                }
-            ]
-        });
-
-        $('#add-book-link').click(function() {
-            $('#title').val('');
-            $('#addBookModal').modal('show');
-        });
-
-        $('#submit-add-book').click(function() {
-            const title = $('#title').val().trim();
-            if (!title) return showAlert('warning', 'Book title is required.');
-
-            $.ajax({
-                url: API_URL,
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ title }),
-                success: function() {
-                    $('#addBookModal').modal('hide');
-                    showAlert('success', 'Book added successfully!');
-                    table.ajax.reload();
                 },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-                    showAlert('danger', 'Failed to add book.');
-                }
+                "columns": [
+                    { "data": "id" },
+                    { "data": "title" },
+                    {
+                        "data": null,
+                        "orderable": false,
+                        "render": function(data, type, row) {
+                            const safeTitle = $('<div>').text(row.title).html();
+                            return '<button class="btn btn-warning btn-sm mr-1 btn-edit" data-id="' + row.id + '" data-title="' + safeTitle + '">Edit</button>' +
+                                   '<button class="btn btn-danger btn-sm btn-delete" data-id="' + row.id + '">Delete</button>';
+                        }
+                    }
+                ]
             });
-        });
 
-        $('#books-table tbody').on('click', '.btn-edit', function() {
-            $('#edit-id').val($(this).data('id'));
-            $('#edit-title').val($(this).data('title'));
-            $('#editBookModal').modal('show');
-        });
-
-        $('#submit-edit-book').click(function() {
-            const id = $('#edit-id').val();
-            const title = $('#edit-title').val().trim();
-            if (!title) return showAlert('warning', 'Book title is required.');
-
-            $.ajax({
-                url: API_URL + '/' + encodeURIComponent(id),
-                type: 'PUT',
-                contentType: 'application/json',
-                data: JSON.stringify({ title }),
-                success: function() {
-                    $('#editBookModal').modal('hide');
-                    showAlert('success', 'Book updated successfully!');
-                    table.ajax.reload();
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-                    showAlert('danger', 'Failed to update book.');
-                }
+            $('#add-book-link').click(function() {
+                $('#title').val('');
+                $('#addBookModal').modal('show');
             });
-        });
 
-        $('#books-table tbody').on('click', '.btn-delete', function() {
-            const id = $(this).data('id');
-            if (!confirm('Delete this book?')) return;
+            $('#submit-add-book').click(function() {
+                const title = $('#title').val().trim();
+                if (!title) return showAlert('warning', 'Book title is required.');
 
-            $.ajax({
-                url: API_URL + '/' + encodeURIComponent(id),
-                type: 'DELETE',
-                success: function() {
-                    showAlert('success', 'Book deleted successfully!');
-                    table.ajax.reload();
-                },
-                error: function(xhr) {
-                    console.error(xhr.responseText);
-                    showAlert('danger', 'Failed to delete book.');
-                }
+                $.ajax({
+                    url: API_URL,
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ title }),
+                    success: function() {
+                        $('#addBookModal').modal('hide');
+                        showAlert('success', 'Book added successfully!');
+                        table.ajax.reload();
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        showAlert('danger', 'Failed to add book (check API Gateway / CORS).');
+                    }
+                });
             });
+
+            $('#books-table tbody').on('click', '.btn-edit', function() {
+                $('#edit-id').val($(this).data('id'));
+                $('#edit-title').val($(this).data('title'));
+                $('#editBookModal').modal('show');
+            });
+
+            $('#submit-edit-book').click(function() {
+                const id = $('#edit-id').val();
+                const title = $('#edit-title').val().trim();
+                if (!title) return showAlert('warning', 'Book title is required.');
+
+                $.ajax({
+                    url: API_URL + '/' + encodeURIComponent(id),
+                    type: 'PUT',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ title }),
+                    success: function() {
+                        $('#editBookModal').modal('hide');
+                        showAlert('success', 'Book updated successfully!');
+                        table.ajax.reload();
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        showAlert('danger', 'Failed to update book (check API Gateway / CORS).');
+                    }
+                });
+            });
+
+            $('#books-table tbody').on('click', '.btn-delete', function() {
+                const id = $(this).data('id');
+                if (!confirm('Delete this book?')) return;
+
+                $.ajax({
+                    url: API_URL + '/' + encodeURIComponent(id),
+                    type: 'DELETE',
+                    success: function() {
+                        showAlert('success', 'Book deleted successfully!');
+                        table.ajax.reload();
+                    },
+                    error: function(xhr) {
+                        console.error(xhr.responseText);
+                        showAlert('danger', 'Failed to delete book (check API Gateway / CORS).');
+                    }
+                });
+            });
+        }).fail(function() {
+            showAlert('danger', 'Failed to load application configuration.');
         });
     });
 </script>

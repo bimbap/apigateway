@@ -1,17 +1,14 @@
-# Books Portal Application (EC2 + API Gateway + Lambda + DynamoDB + EFS)
-
-Web application and serverless CRUD backend for the Cloud Computing post-test scenario.
+# Dashboard
+Dashboard from Device, you must set up the NoSQL database and serverless API.
 
 ---
 
-## Architecture
+# Architecture
 ![Architecture](Latiahn-APlikasi.drawio.png)
 
 ---
 
-## AWS Lambda Functions (`Python 3.12`)
-
-Deploy all five functions using the **Python 3.12** runtime with **Lambda Proxy Integration** enabled in API Gateway:
+# AWS Lambda Functions (`Python 3.12`)
 
 | Function | Source File | Route & Method |
 |---|---|---|
@@ -23,40 +20,77 @@ Deploy all five functions using the **Python 3.12** runtime with **Lambda Proxy 
 
 ---
 
-## EC2 Application Setup (Amazon Linux 2023)
+# API Gateway Mapping Templates (Non-Proxy Reference)
 
-### 1. Install Node.js 22 LTS & EFS Utils
+If using non-proxy Integration Request mapping templates:
+
+## Method POST
+```vtl
+$input.json('$')
+```
+
+## Method PUT (`/books/{id}`)
+```json
+{
+  "body": $input.json('$'),
+  "pathParameters": {
+    "id": "$input.params('id')"
+  }
+}
+```
+
+## Method GET (`/books/{id}`)
+```json
+{
+  "body": $input.json('$'),
+  "pathParameters": {
+    "id": "$input.params('id')"
+  }
+}
+```
+
+## Method DELETE (`/books/{id}`)
+```json
+{
+  "pathParameters": {
+    "id": "$input.params('id')"
+  }
+}
+```
+
+---
+
+# Application
+
+## Install Node.js 22 LTS & Dependencies
 ```bash
 curl -fsSL https://rpm.nodesource.com/setup_22.x | sudo bash -
 sudo dnf install -y nodejs git amazon-efs-utils
 ```
 
-### 2. Mount EFS
-Using EFS Mount Helper:
+## Mounting EFS
+
+### Using EFS Mount Helper:
 ```bash
-mkdir -p /home/ec2-user/efs
-sudo mount -t efs -o tls <your-efs-id>:/ /home/ec2-user/efs
+sudo mount -t efs -o tls yourEFS:/ efs
 ```
 
-Using NFSv4 Client:
+### Using NFS Client:
 ```bash
-sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport <your-efs-dns>:/ /home/ec2-user/efs
+sudo mount -t nfs4 -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport yourEFS:/ efs
 ```
 
-### 3. Install Dependencies
+## Install Packages
 ```bash
 npm install
 ```
 
-### 4. Environment Variables (`.env`)
-Create a `.env` file in the project root:
-```env
-PORT=5000
-API_URL=https://<api-id>.execute-api.us-east-1.amazonaws.com/production/books
-EFS_LOG_PATH=/home/ec2-user/efs/app.log
-```
+## Environment Variable
+Setting the environment variable on your application path, and set the variable names on the instruction below:
+- `API_URL=set your API Gateway URL`
+- `EFS_LOG_PATH=set your path EFS`
 
-### 5. Run Application
+## Command Run Application
 ```bash
 npm run start-prod
 ```
