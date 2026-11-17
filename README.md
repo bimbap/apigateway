@@ -4,7 +4,7 @@ Full-stack books management portal backed by Amazon API Gateway, AWS Lambda, Dyn
 
 ## Architecture
 
-![Architecture](Latiahn-APlikasi.drawio.png)
+![Architecture](Latihan-Aplikasi.drawio.png)
 
 ## AWS Lambda Functions (`Python 3.12`)
 
