@@ -7,7 +7,7 @@
         "vpc_profiles": [
           {
             "id": "vpc_1",
-            "name": "Post-Test VPC",
+            "name": "lks-vpc",
             "target_region": "us-east-1",
             "enabled": true,
             "checks": {
@@ -34,22 +34,22 @@
                 "expected_count": 4,
                 "subnets": [
                   {
-                    "cidr": "10.0.0.0/24",
+                    "cidr": "10.0.0.0/20",
                     "type": "public",
                     "az": "us-east-1a"
                   },
                   {
-                    "cidr": "10.0.128.0/24",
+                    "cidr": "10.0.128.0/20",
                     "type": "private",
                     "az": "us-east-1a"
                   },
                   {
-                    "cidr": "10.0.16.0/24",
+                    "cidr": "10.0.16.0/20",
                     "type": "public",
                     "az": "us-east-1b"
                   },
                   {
-                    "cidr": "10.0.144.0/24",
+                    "cidr": "10.0.144.0/20",
                     "type": "private",
                     "az": "us-east-1b"
                   }
@@ -130,7 +130,7 @@
                   {
                     "name": "lks-network-sg",
                     "description": "",
-                    "vpc_scope": "vpc_profile:LKS VPC",
+                    "vpc_scope": "matched_vpcs",
                     "inbound_rules": [
                       {
                         "type": "HTTP",
@@ -149,7 +149,7 @@
                         "description": "Allow all outbound"
                       }
                     ],
-                    "grade_name": true,
+                    "grade_name": false,
                     "grade_desc": false,
                     "grade_inbound": true,
                     "grade_outbound": false,
@@ -177,7 +177,7 @@
                         "description": "Allow all outbound"
                       }
                     ],
-                    "grade_name": true,
+                    "grade_name": false,
                     "grade_desc": false,
                     "grade_inbound": true,
                     "grade_outbound": false
@@ -200,7 +200,7 @@
                 "detail": "Egress-only Internet Gateway (IPv6)"
               },
               "peering": {
-                "enabled": true,
+                "enabled": false,
                 "grade_status": true,
                 "grade_dns_requester": false,
                 "grade_dns_accepter": false,
@@ -215,7 +215,7 @@
                 ]
               },
               "endpoint": {
-                "enabled": true,
+                "enabled": false,
                 "detail": "VPC Endpoint (Gateway/Interface)",
                 "endpoint_profiles": [
                   {
@@ -230,7 +230,7 @@
                 ]
               },
               "endpoint_services": {
-                "enabled": true,
+                "enabled": false,
                 "detail": "VPC Endpoint Service Profiles, Load Balancer Type, Acceptance, and IP Support",
                 "grade_acceptance": false,
                 "grade_ipv4": false,
@@ -244,7 +244,7 @@
                 ]
               },
               "transit_gateways": {
-                "enabled": true,
+                "enabled": false,
                 "detail": "Transit Gateway Profiles, Route Tables, Sharing, and CIDR Blocks",
                 "grade_dns": false,
                 "grade_sg_referencing": false,
@@ -797,8 +797,8 @@
             "checks": {
               "api_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "books",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "API Gateway Name pattern matching"
               },
@@ -922,7 +922,7 @@
             "id": "apigw_2",
             "name": "API Profile 2",
             "target_region": "us-east-1",
-            "enabled": true,
+            "enabled": false,
             "api_type": "WEBSOCKET",
             "checks": {
               "api_name": {
@@ -1091,13 +1091,13 @@
         "s3_profiles": [
           {
             "id": "s3_1",
-            "name": "Certificate Public Bucket",
+            "name": "s3-postest",
             "target_region": "us-east-1",
             "enabled": true,
             "checks": {
               "s3_name": {
-                "enabled": false,
-                "rule_id_mode": "prefix_preposition_suffix",
+                "enabled": true,
+                "rule_id_mode": "prefix",
                 "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "S3 Bucket Name pattern matching"
@@ -1121,7 +1121,7 @@
                 "detail": "S3 Bucket Versioning"
               },
               "s3_bucket_policy": {
-                "enabled": true,
+                "enabled": false,
                 "detail": "S3 Bucket Policy existence"
               },
               "s3_cors": {
@@ -1130,14 +1130,27 @@
               },
               "s3_lifecycle": {
                 "enabled": true,
-                "rule_id_mode": "prefix_preposition_suffix",
+                "rule_id_mode": "prefix",
                 "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "version_scope": "both",
                 "transition_days": 30,
-                "storage_class": "STANDARD_IA",
+                "storage_class": "GLACIER",
                 "expiration_days": 365,
-                "detail": "S3 Lifecycle Rules"
+                "detail": "S3 Lifecycle Rules",
+                "transitions": [
+                  {
+                    "storage_class": "GLACIER",
+                    "days": 30,
+                    "scope": "current"
+                  }
+                ],
+                "expiration": {
+                  "expire_current_enabled": true,
+                  "current_days": 365,
+                  "expire_noncurrent_enabled": false,
+                  "noncurrent_days": 180
+                }
               },
               "s3_static_website": {
                 "enabled": false,
@@ -1148,16 +1161,16 @@
                 "detail": "Amazon EventBridge Notification"
               },
               "s3_event_notifications": {
-                "enabled": true,
+                "enabled": false,
                 "detail": "S3 Event Notifications (SNS/SQS/Lambda)"
               },
               "s3_folder": {
-                "enabled": true,
+                "enabled": false,
                 "folders": [],
                 "detail": "S3 Folder Structure"
               },
               "s3_file": {
-                "enabled": true,
+                "enabled": false,
                 "files": [],
                 "detail": "S3 File Objects"
               }
@@ -1166,18 +1179,18 @@
         ],
         "checks": {
           "s3_name": {
-            "enabled": false,
-            "rule_id_mode": "prefix_preposition_suffix",
+            "enabled": true,
+            "rule_id_mode": "prefix",
             "rule_id_custom": "",
             "rule_id_custom_match": "contains",
             "detail": "S3 Bucket Name pattern matching"
           },
           "s3_acl": {
-            "enabled": true,
+            "enabled": false,
             "detail": "S3 Bucket ACL configuration"
           },
           "s3_block_public_access": {
-            "enabled": true,
+            "enabled": false,
             "sub_checks": [
               "Block Public Acls",
               "Ignore Public Acls",
@@ -1187,11 +1200,11 @@
             "detail": "S3 Block Public Access settings"
           },
           "s3_versioning": {
-            "enabled": true,
+            "enabled": false,
             "detail": "S3 Bucket Versioning"
           },
           "s3_bucket_policy": {
-            "enabled": false,
+            "enabled": true,
             "detail": "S3 Bucket Policy existence"
           },
           "s3_cors": {
@@ -1199,20 +1212,15 @@
             "detail": "S3 CORS configuration"
           },
           "s3_lifecycle": {
-            "enabled": false,
-            "rule_id_mode": "prefix_preposition_suffix",
+            "enabled": true,
+            "rule_id_mode": "prefix",
             "rule_id_custom": "",
             "rule_id_custom_match": "contains",
             "version_scope": "both",
             "transitions": [
               {
-                "storage_class": "STANDARD_IA",
-                "days": 30,
-                "scope": "current"
-              },
-              {
                 "storage_class": "GLACIER",
-                "days": 90,
+                "days": 30,
                 "scope": "current"
               }
             ],
@@ -1249,15 +1257,16 @@
             "checks": {
               "efs_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "appsefs",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "EFS File System Name pattern matching"
               },
               "efs_type": {
                 "enabled": true,
                 "expected_type": "regional",
-                "detail": "EFS File System Type validation"
+                "detail": "EFS File System Type validation",
+                "file_system_type": "regional"
               },
               "efs_backup": {
                 "enabled": true,
@@ -1269,7 +1278,10 @@
                 "transition_ia": "AFTER_30_DAYS",
                 "transition_archive": "AFTER_90_DAYS",
                 "transition_primary": "AFTER_1_ACCESS",
-                "detail": "EFS Lifecycle Policies configuration"
+                "detail": "EFS Lifecycle Policies configuration",
+                "transition_to_archive": "AFTER_90_DAYS",
+                "transition_to_primary": "AFTER_1_ACCESS",
+                "transition_to_ia": "AFTER_30_DAYS"
               },
               "efs_encryption": {
                 "enabled": true,
@@ -1278,20 +1290,23 @@
               "efs_performance": {
                 "enabled": true,
                 "expected_mode": "general_purpose",
-                "detail": "EFS Performance Mode validation"
+                "detail": "EFS Performance Mode validation",
+                "performance_mode": "general_purpose"
               },
               "efs_throughput": {
                 "enabled": true,
                 "expected_mode": "elastic",
-                "detail": "EFS Throughput Mode validation"
+                "detail": "EFS Throughput Mode validation",
+                "throughput_mode": "elastic"
               },
               "efs_network": {
                 "enabled": true,
                 "expected_scope": "vpc",
-                "detail": "EFS Mount Targets Network Scope"
+                "detail": "EFS Mount Targets Network Scope",
+                "scope": "vpc"
               },
               "efs_policy": {
-                "enabled": true,
+                "enabled": false,
                 "detail": "EFS Filesystem Policy configuration"
               }
             }
@@ -1300,7 +1315,7 @@
         "checks": {
           "efs_name": {
             "enabled": false,
-            "rule_id_mode": "prefix_preposition_suffix",
+            "rule_id_mode": "prefix",
             "rule_id_custom": "",
             "rule_id_custom_match": "contains",
             "detail": "EFS File System Name pattern matching"
@@ -1348,17 +1363,17 @@
         }
       },
       "backup": {
-        "enabled": true,
+        "enabled": false,
         "backup_profiles": [
           {
             "id": "backup_1",
             "name": "DynamoDB Backup Plan",
             "target_region": "us-east-1",
-            "enabled": true,
+            "enabled": false,
             "checks": {
               "plan_name": {
-                "enabled": false,
-                "rule_id_mode": "prefix_preposition_suffix",
+                "enabled": true,
+                "rule_id_mode": "prefix",
                 "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "AWS Backup Plan Name pattern matching"
@@ -1408,15 +1423,15 @@
             "checks": {
               "instance_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "apps1a",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "EC2 Instance Name pattern matching"
               },
               "instance_specs": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "apps1a",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "instance_type": "t3.micro",
                 "state": "running",
@@ -1468,15 +1483,15 @@
             "checks": {
               "instance_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "apps1b",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "EC2 Instance Name pattern matching"
               },
               "instance_specs": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "apps1b",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "instance_type": "t3.micro",
                 "state": "running",
@@ -1532,15 +1547,15 @@
             "enabled": true,
             "checks": {
               "tg_name": {
-                "enabled": false,
-                "rule_id_mode": "prefix_preposition_suffix",
+                "enabled": true,
+                "rule_id_mode": "prefix",
                 "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "Target Group Name pattern matching"
               },
               "target_specs": {
                 "enabled": true,
-                "rule_id_mode": "prefix_preposition_suffix",
+                "rule_id_mode": "prefix",
                 "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "target_type": "instance",
@@ -1577,14 +1592,14 @@
             "checks": {
               "alb_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "apps-public-lb",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "Application Load Balancer Name pattern matching"
               },
               "alb_specs": {
                 "enabled": true,
-                "rule_id_mode": "prefix_preposition_suffix",
+                "rule_id_mode": "prefix",
                 "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "scheme": "internet-facing",
@@ -1610,7 +1625,7 @@
                 "enabled": true,
                 "port": 80,
                 "protocol": "HTTP",
-                "target_group": "Web Target Group",
+                "target_group": "Apps Target Group",
                 "detail": "HTTP:80 Listener Routing to Target Group",
                 "https_enabled": false,
                 "ssl_certificate": "",
@@ -1630,8 +1645,8 @@
             "enabled": true,
             "checks": {
               "lt_name": {
-                "enabled": false,
-                "rule_id_mode": "prefix_preposition_suffix",
+                "enabled": true,
+                "rule_id_mode": "prefix",
                 "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "Launch Template Name pattern matching"
@@ -1673,18 +1688,18 @@
             "enabled": true,
             "checks": {
               "asg_name": {
-                "enabled": false,
-                "rule_id_mode": "prefix_preposition_suffix",
+                "enabled": true,
+                "rule_id_mode": "prefix",
                 "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "Auto Scaling Group Name pattern matching"
               },
               "asg_specs": {
                 "enabled": true,
-                "rule_id_mode": "prefix_preposition_suffix",
+                "rule_id_mode": "prefix",
                 "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
-                "launch_template": "Web Launch Template",
+                "launch_template": "Apps Launch Template",
                 "min_size": 2,
                 "max_size": 4,
                 "desired_capacity": 2,
@@ -1699,7 +1714,7 @@
               },
               "elb_integration": {
                 "enabled": true,
-                "target_group": "Web Target Group",
+                "target_group": "Apps Target Group",
                 "health_check_type": "ELB",
                 "grace_period": 300,
                 "detail": "Target Group Association and ELB Health Checks"
@@ -1726,8 +1741,8 @@
             "checks": {
               "function_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "bookget",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "Lambda Function Name pattern matching"
               },
@@ -1747,8 +1762,12 @@
               "permissions_role": {
                 "enabled": true,
                 "role_pattern": "LabRole",
-                "vpc_enabled": false,
-                "detail": "IAM Execution Role and VPC Access"
+                "vpc_enabled": true,
+                "detail": "IAM Execution Role and VPC Access",
+                "vpc_scope": "matched_vpcs",
+                "target_subnet": "private",
+                "sg_enabled": true,
+                "sg_pattern": ""
               },
               "environment_variables": {
                 "enabled": true,
@@ -1773,8 +1792,8 @@
             "checks": {
               "function_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "booksget",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "Lambda Function Name pattern matching"
               },
@@ -1794,8 +1813,12 @@
               "permissions_role": {
                 "enabled": true,
                 "role_pattern": "LabRole",
-                "vpc_enabled": false,
-                "detail": "IAM Execution Role and VPC Access"
+                "vpc_enabled": true,
+                "detail": "IAM Execution Role and VPC Access",
+                "vpc_scope": "matched_vpcs",
+                "target_subnet": "private",
+                "sg_enabled": true,
+                "sg_pattern": ""
               },
               "environment_variables": {
                 "enabled": true,
@@ -1820,8 +1843,8 @@
             "checks": {
               "function_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "bookcreate",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "Lambda Function Name pattern matching"
               },
@@ -1841,8 +1864,12 @@
               "permissions_role": {
                 "enabled": true,
                 "role_pattern": "LabRole",
-                "vpc_enabled": false,
-                "detail": "IAM Execution Role and VPC Access"
+                "vpc_enabled": true,
+                "detail": "IAM Execution Role and VPC Access",
+                "vpc_scope": "matched_vpcs",
+                "target_subnet": "private",
+                "sg_enabled": true,
+                "sg_pattern": ""
               },
               "environment_variables": {
                 "enabled": true,
@@ -1867,8 +1894,8 @@
             "checks": {
               "function_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "book-update",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "Lambda Function Name pattern matching"
               },
@@ -1888,8 +1915,12 @@
               "permissions_role": {
                 "enabled": true,
                 "role_pattern": "LabRole",
-                "vpc_enabled": false,
-                "detail": "IAM Execution Role and VPC Access"
+                "vpc_enabled": true,
+                "detail": "IAM Execution Role and VPC Access",
+                "vpc_scope": "matched_vpcs",
+                "target_subnet": "private",
+                "sg_enabled": true,
+                "sg_pattern": ""
               },
               "environment_variables": {
                 "enabled": true,
@@ -1914,8 +1945,8 @@
             "checks": {
               "function_name": {
                 "enabled": true,
-                "rule_id_mode": "custom",
-                "rule_id_custom": "book-delete",
+                "rule_id_mode": "prefix",
+                "rule_id_custom": "",
                 "rule_id_custom_match": "contains",
                 "detail": "Lambda Function Name pattern matching"
               },
@@ -1935,8 +1966,12 @@
               "permissions_role": {
                 "enabled": true,
                 "role_pattern": "LabRole",
-                "vpc_enabled": false,
-                "detail": "IAM Execution Role and VPC Access"
+                "vpc_enabled": true,
+                "detail": "IAM Execution Role and VPC Access",
+                "vpc_scope": "matched_vpcs",
+                "target_subnet": "private",
+                "sg_enabled": true,
+                "sg_pattern": ""
               },
               "environment_variables": {
                 "enabled": true,
@@ -2757,6 +2792,84 @@
           }
         ],
         "checks": {}
+      },
+      "cloudtrail": {
+        "enabled": true,
+        "cloudtrail_profiles": [
+          {
+            "id": "ct_1",
+            "name": "Organization Audit Trail",
+            "target_region": "us-east-1",
+            "enabled": true,
+            "checks": {
+              "trail_name": {
+                "enabled": true,
+                "rule_id_mode": "prefix_preposition_suffix",
+                "rule_id_custom": "",
+                "rule_id_custom_match": "contains",
+                "detail": "CloudTrail Trail Name pattern matching"
+              },
+              "s3_bucket": {
+                "enabled": true,
+                "bucket_name": "audit-logs-bucket",
+                "match_mode": "contains",
+                "detail": "Destination S3 Bucket Name"
+              },
+              "trail_logging": {
+                "enabled": true,
+                "is_logging": true,
+                "is_multi_region": true,
+                "include_global_events": true,
+                "detail": "Active Logging, Multi-Region, and Global Service Events"
+              },
+              "log_validation": {
+                "enabled": true,
+                "log_file_validation_enabled": true,
+                "kms_encrypted": false,
+                "kms_key_id": "",
+                "detail": "Log File Integrity Validation and KMS Encryption"
+              }
+            }
+          }
+        ],
+        "checks": {}
+      },
+      "ssm_parameter_store": {
+        "enabled": true,
+        "ssm_parameter_profiles": [
+          {
+            "id": "ssm_1",
+            "name": "App Config Parameter",
+            "target_region": "us-east-1",
+            "enabled": true,
+            "checks": {
+              "parameter_name": {
+                "enabled": true,
+                "rule_id_mode": "prefix_preposition_suffix",
+                "rule_id_custom": "",
+                "rule_id_custom_match": "contains",
+                "detail": "SSM Parameter Name/Path pattern matching"
+              },
+              "parameter_type": {
+                "enabled": true,
+                "expected_type": "SecureString",
+                "detail": "Parameter Type (String / StringList / SecureString)"
+              },
+              "parameter_tier": {
+                "enabled": true,
+                "expected_tier": "Standard",
+                "detail": "Parameter Tier (Standard / Advanced / Intelligent-Tiering)"
+              },
+              "kms_encryption": {
+                "enabled": true,
+                "kms_encrypted": false,
+                "kms_key_id": "",
+                "detail": "Custom KMS Key Encryption (for SecureString)"
+              }
+            }
+          }
+        ],
+        "checks": {}
       }
     }
   },
@@ -2834,6 +2947,84 @@
                 "enabled": true,
                 "role_name": "CodeDeployServiceRole",
                 "detail": "CodeDeploy Service Role IAM Association"
+              }
+            }
+          }
+        ],
+        "checks": {}
+      },
+      "codebuild": {
+        "enabled": true,
+        "codebuild_profiles": [
+          {
+            "id": "cb_1",
+            "name": "Application Build Project",
+            "target_region": "us-east-1",
+            "enabled": true,
+            "checks": {
+              "project_name": {
+                "enabled": true,
+                "rule_id_mode": "prefix_preposition_suffix",
+                "rule_id_custom": "",
+                "rule_id_custom_match": "contains",
+                "detail": "CodeBuild Project Name pattern matching"
+              },
+              "source_config": {
+                "enabled": true,
+                "source_type": "CODECOMMIT",
+                "buildspec_required": true,
+                "detail": "Source Provider Type and Buildspec Configuration"
+              },
+              "environment": {
+                "enabled": true,
+                "compute_type": "BUILD_GENERAL1_SMALL",
+                "env_type": "LINUX_CONTAINER",
+                "privileged_mode": false,
+                "detail": "Compute Type, Environment Type, and Privileged Mode"
+              },
+              "artifacts_and_role": {
+                "enabled": true,
+                "artifacts_type": "S3",
+                "role_name": "",
+                "detail": "Artifacts Output Type and Service Role"
+              }
+            }
+          }
+        ],
+        "checks": {}
+      },
+      "codepipeline": {
+        "enabled": true,
+        "codepipeline_profiles": [
+          {
+            "id": "cp_1",
+            "name": "CI/CD Release Pipeline",
+            "target_region": "us-east-1",
+            "enabled": true,
+            "checks": {
+              "pipeline_name": {
+                "enabled": true,
+                "rule_id_mode": "prefix_preposition_suffix",
+                "rule_id_custom": "",
+                "rule_id_custom_match": "contains",
+                "detail": "CodePipeline Name pattern matching"
+              },
+              "stages_config": {
+                "enabled": true,
+                "min_stages": 2,
+                "required_stages": "Source,Build",
+                "detail": "Minimum Stage Count and Required Stage Names"
+              },
+              "artifact_store": {
+                "enabled": true,
+                "store_type": "S3",
+                "kms_encrypted": false,
+                "detail": "Artifact Store Type and KMS Encryption"
+              },
+              "service_role": {
+                "enabled": true,
+                "role_name": "",
+                "detail": "CodePipeline Service Role IAM Association"
               }
             }
           }
